@@ -1,0 +1,42 @@
+input{
+	-webkit-appearance: none;
+}
+
+body{
+	min-height: 600px;
+	min-width: 1100px;
+	overflow: auto;
+}
+
+.colorpicker{
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	outline: none;
+	border: none;
+}
+
+.red .ivu-slider-button{
+   border: 2px solid #ff0000;
+}
+
+.red .ivu-slider-bar{
+	background: #ff0000;
+}
+
+.green .ivu-slider-button{
+   border: 2px solid #00ff00;
+}
+
+.green .ivu-slider-bar{
+	background: #00ff00;
+}
+
+.blue .ivu-slider-button{
+   border: 2px solid #0000ff;
+}
+
+.blue .ivu-slider-bar{
+	background: #0000ff;
+}
+
