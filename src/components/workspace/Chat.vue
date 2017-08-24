@@ -3,12 +3,18 @@
 		<div class="workspace">
 		    <div class="showbox">
 		        <Row class="chatcontent">
-		            <p v-for="msg in massage"><span>{{msg.name + '(' + msg.time + '):'}}</span>{{msg.content}}</p>
+		            <p v-for="msg in massage">
+			            <span :class="msg.name === ismyname ? 'mysef' : ''">
+			                {{msg.name + '(' + msg.time + '):'}}
+			            </span>
+			            <img v-if="msg.type === 'image'" :src="msg.content" align="top">
+			            <span v-else-if="msg.type === 'string'">
+			                {{msg.content}}
+			            </span>
+		            </p>
 			    </Row>
-			    <Row class="setbox" type="flex" justify="start" align="middle">
-			        <Col span="1">
-			        	<span><Icon type="image"></Icon></span>
-			        </Col>
+			    <Row class="setbox">
+			        <span class="imagebox"><Icon type="image"></Icon><input type="file" accept="image/*" @change="msgimg"></span>			        
 		        </Row>
 		        <Row class="enterbox">
 			        <textarea v-model="content" placeholder="200字以内"></textarea>
@@ -17,9 +23,54 @@
 		            <Button type="success" @click="send">发送</Button>
 		            <Button type="warning" @click="clearcontent">清除</Button>
 		        </Row>
+		        <div class="room">公共聊天室</div>
 		    </div>
 		</div>
 		<div class="chooseNav">
+		    <Row>
+		        <Card :bordered="false"  dis-hover>
+	            <p slot="title">房间</p>
+	            <div class="roombox">
+	                <Row class="searchbox">
+	                    <Input placeholder="请输入房间名" v-model="search"><Button slot="append" icon="ios-search-strong"></Button></Input>		               
+                    </Row>
+                    <Menu theme="dark" active-name="1">
+				        <Menu-item name="1">
+				            <Icon type="person-stalker"></Icon>公共聊天室
+				        </Menu-item>
+				        <Menu-item name="2">
+				            <Icon type="person"></Icon>房间1(33)
+				        </Menu-item>
+				        <Menu-item name="3">
+				            <Icon type="person"></Icon>房间1(33)
+				        </Menu-item>
+				        <Menu-item name="4">
+				            <Icon type="person"></Icon>房间1(33)
+				        </Menu-item>
+				        <Menu-item name="5">
+				            <Icon type="person"></Icon>房间1(33)
+				        </Menu-item>
+				        <Menu-item name="6">
+				            <Icon type="person"></Icon>房间1(33)
+				        </Menu-item>
+				    </Menu>
+	            </div>
+                </Card>
+                <Collapse accordion>
+                    <Panel>
+			            创建房间
+			            <p slot="content">
+			                <Row>
+			                    <Input v-model="roomname" placeholder="请输入房间名"></Input>		               
+	                        </Row>
+	                        <Row>
+	                            <Button style="margin-top: 10px;" type="success" @click="add" long>创建</Button>
+	                        </Row>
+	                    </p>
+		            </Panel>
+		        </Collapse>
+        </Panel>
+		    </Row>
 		</div>	
 	</div>
 </template>
@@ -29,21 +80,47 @@ export default {
   data () {
     return {
       content: '',
-      massage: []
+      roomname: '',
+      search: '',
+      massage: [],
+      activeroom: ''
+    }
+  },
+  computed: {
+    ismyname () {
+      return this.$store.state.name
     }
   },
   methods: {
     clearcontent () {
       this.content = ''
     },
+    msgimg (e) {
+      let reader = new FileReader()
+      reader.readAsDataURL(e.target.files[0])
+      reader.onload = (event) => {
+        this.$socket.emit('content', {
+          name: this.$store.state.name,
+          type: 'image',
+          time: new Date().toLocaleTimeString(),
+          content: event.target.result
+        })
+        e.target.value = ''
+      }
+    },
     send () {
       if (this.content === '') return
-      let date = new Date()
-      let time = date.toLocaleTimeString()
       this.$socket.emit('content', {
         name: this.$store.state.name,
-        time: time,
+        type: 'string',
+        time: new Date().toLocaleTimeString(),
         content: this.content
+      })
+      this.content = ''
+    },
+    add () {
+      this.$socket.emit('addroom', {
+        roomname: this.roomname
       })
     }
   },
@@ -76,6 +153,19 @@ export default {
 	position: relative;
 }
 
+.chatcontent{
+	padding: 10px;
+}
+
+.chatcontent p{
+	font-size: 14px;
+	padding: 2px 0;
+}
+
+.chatcontent p img{
+	max-width: 400px;
+}
+
 .workspace{
 	position: relative;
 	width: 100%;
@@ -96,8 +186,41 @@ export default {
 	color: #fff;
 }
 
+.setbox>*{
+	
+	
+}
+
+.imagebox{
+	cursor: pointer;
+	display: inline-block;
+	
+	position: relative;
+}
+
+.imagebox input{
+	position: absolute;
+	display: inline-block;
+	font-size: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: pointer;
+	z-index: 9999;
+	left: 0;
+	top: 0;
+}
+
+.mysef{
+	color: #19be6b;
+}
+
 .setbox i{
    cursor: pointer;
+}
+
+.searchbox{
+	margin-bottom: 10px;
 }
 
 .send button{
@@ -105,6 +228,7 @@ export default {
 	margin-left: 5px;
 }
 .chatcontent{
+	position: relative;
 	width: 100%;
 	background-color: #eee;
 	border-radius: 4px;
@@ -113,17 +237,36 @@ export default {
 	overflow-y: auto;
 }
 
-.chatcontent p{
-	padding: 4px 15px;
-	word-wrap:break-word; 
-    word-break:break-all; 
-	font-size: 14px;
-	width: 100%;
+.room{
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	font-size: 20px;
 }
+
 
 .setbox{
 	width: 100%;
 	height: 60px;
+}
+
+.roombox{
+	position: relative;
+	width: 100%;
+}
+
+.roombox i{
+	font-size: 18px;
+}
+
+.roombox p{
+   font-size: 14px;
+   padding: 3px 6px;
+   margin: 2px 0;
+   border-radius: 4px;
+   background-color: #464c5b;
+   color: #fff;
+   cursor: pointer;
 }
 
 .enterbox{
@@ -145,5 +288,17 @@ textarea{
 	letter-spacing: 1px;
 	line-height: 20px;
 	padding: 5px;
+}
+
+.ivu-card{
+	border-radius: 4px 4px 0 0;
+}
+
+.ivu-collapse{
+	border-radius: 0 0 4px 4px;
+}
+
+.ivu-menu-item{
+	padding: 10px 16px;
 }
 </style>
