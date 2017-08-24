@@ -23,7 +23,7 @@
 		            <Button type="success" @click="send">发送</Button>
 		            <Button type="warning" @click="clearcontent">清除</Button>
 		        </Row>
-		        <div class="room">公共聊天室</div>
+		        <div class="room">{{actionroom}}</div>
 		    </div>
 		</div>
 		<div class="chooseNav">
@@ -34,24 +34,9 @@
 	                <Row class="searchbox">
 	                    <Input placeholder="请输入房间名" v-model="search"><Button slot="append" icon="ios-search-strong"></Button></Input>		               
                     </Row>
-                    <Menu theme="dark" active-name="1">
-				        <Menu-item name="1">
-				            <Icon type="person-stalker"></Icon>公共聊天室
-				        </Menu-item>
-				        <Menu-item name="2">
-				            <Icon type="person"></Icon>房间1(33)
-				        </Menu-item>
-				        <Menu-item name="3">
-				            <Icon type="person"></Icon>房间1(33)
-				        </Menu-item>
-				        <Menu-item name="4">
-				            <Icon type="person"></Icon>房间1(33)
-				        </Menu-item>
-				        <Menu-item name="5">
-				            <Icon type="person"></Icon>房间1(33)
-				        </Menu-item>
-				        <Menu-item name="6">
-				            <Icon type="person"></Icon>房间1(33)
+                    <Menu theme="dark" active-name="1" @on-select="changeroom" :open-names="['公共聊天室']">
+				        <Menu-item v-for="room in allroom" :name="room.name">
+				            <Icon type="person-stalker" v-if="room.name === '公共聊天室'"></Icon><Icon type="person" v-else></Icon>{{room.name + '(' + room.count + ')'}}
 				        </Menu-item>
 				    </Menu>
 	            </div>
@@ -83,7 +68,8 @@ export default {
       roomname: '',
       search: '',
       massage: [],
-      activeroom: ''
+      actionroom: '',
+      allroom: []
     }
   },
   computed: {
@@ -94,6 +80,9 @@ export default {
   methods: {
     clearcontent () {
       this.content = ''
+    },
+    changeroom (name) {
+      this.actionroom = name
     },
     msgimg (e) {
       let reader = new FileReader()
@@ -120,19 +109,32 @@ export default {
     },
     add () {
       this.$socket.emit('addroom', {
-        roomname: this.roomname
+        name: this.roomname,
+        count: 1
       })
     }
   },
   socket: {
     events: {
+      updateallroom (msg) {
+        this.allroom = msg
+      },
       msg (msg) {
         if (this.massage.length >= 100) {
           this.massage.shift()
         }
         this.massage.push(msg)
+      },
+      roomfull (msg) {
+        this.$Notice.open({
+          title: '系统通知',
+          desc: msg
+        })
       }
     }
+  },
+  mounted () {
+    this.$socket.emit('login')
   }
 }
 </script>
