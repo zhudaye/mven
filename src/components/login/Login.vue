@@ -159,13 +159,13 @@ export default {
             emulateJSON: true
           }).then(response => {
             if (response.body === '1') {
-              this.success('注册成功!')
+              this.$Message.success('注册成功!')
               this.$store.commit('setname', this.name)
               this.$router.replace({ path: '/' })
             }
-            if (response.body === '2') this.error('注册失败!')
-            if (response.body === '3') this.error('用户已存在!')
-            if (response.body === '-1' || response.body === '-2') this.error('未知错误,请联系客服!')
+            if (response.body === '2') this.$Message.error('注册失败!')
+            if (response.body === '3') this.$Message.error('用户已存在!')
+            if (response.body === '-1' || response.body === '-2') this.$Message.error('未知错误,请联系客服!')
           }, response => {
             console.log(response)
           })

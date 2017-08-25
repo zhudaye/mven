@@ -20,8 +20,8 @@
                 <Icon type="bag"></Icon>
                 作品
             </template>
-            <Menu-item name="2-1">未完成</Menu-item>
-            <Menu-item name="2-2">已完成</Menu-item>
+            <Menu-item name="my-nodone">未完成</Menu-item>
+            <Menu-item name="my-done">已完成</Menu-item>
         </Submenu>
         <Submenu name="3">
             <template slot="title">

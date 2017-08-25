@@ -44,7 +44,23 @@
 	            <div slot="title">基本操作</div>
 	            <div><Button type="warning" @click="clearCanvas">清理画布</Button><Button type="info" @click="goback">后退</Button><Button type="success" @click="save">保存</Button><Button type="error" @click="clearSave">清理缓存</Button></div>
 	        </Card>
-		</div>	
+		</div>
+    <Modal v-model="modal1" title="保存图片" @on-ok="ok" class-name="vertical-center-modal">
+        <p> 
+          <Form label-position="right" :label-width="60">
+            <Form-item label="图片名称">
+                <Input v-model="imgname" placeholder="请输入"></Input>
+            </Form-item>
+            <Form-item label="是否完成">
+              <Radio-group v-model="isdone">
+                  <Radio label="done">已完成</Radio>
+                  <Radio label="nodone">未完成</Radio>
+              </Radio-group>
+            </Form-item>
+          </Form>
+        </p>
+        <p><img :src="saveimg" style="width:100%;"></p>
+    </Modal>	
 	</div>
 </template>
 <script>
@@ -60,7 +76,11 @@ export default {
         b: 0,
         a: 100
       },
-      lineWidth: 4
+      lineWidth: 4,
+      modal1: false,
+      saveimg: '',
+      imgname: '',
+      isdone: 'done'
     }
   },
   computed: {
@@ -84,8 +104,29 @@ export default {
       this.canvasContext.clear()
     },
     save () {
-      return
-      /* this.canvasContext.saveCanvas() */
+      this.saveimg = this.canvasContext.obj.toDataURL('image/png')
+      this.modal1 = true
+    },
+    ok () {
+      this.$http.post('/node/saveimg', // 保存图片
+        {
+          username: this.$store.state.name,
+          imgname: this.imgname,
+          type: this.isdone,
+          img: this.saveimg
+        },
+        {
+          emulateJSON: true
+        }).then(response => {
+          if (response.body === '1') {
+            this.$Message.success('保存成功!')
+          }
+          if (response.body === '2') this.$Message.error('保存失败!')
+          if (response.body === '3') this.$Message.error('图片名已存在!')
+          if (response.body === '-1' || response.body === '-2') this.$Message.error('未知错误,请联系客服!')
+        }, response => {
+          console.log(response)
+        })
     },
     clearSave () {
       this.canvasContext.clearSave()
@@ -182,6 +223,17 @@ Canvas.prototype = {
   drawEnd (endX, endY) {
     this.context.restore()
   },
+  rewindow () {
+    this.offsetTop = -this.obj.getBoundingClientRect().top
+    this.offsetLeft = -this.obj.getBoundingClientRect().left
+    this.obj.width = document.getElementById('canvasbox1').offsetWidth > this.obj.width ? document.getElementById('canvasbox1').offsetWidth : this.obj.width
+    this.obj.height = document.getElementById('canvasbox1').offsetHeight > this.obj.height ? document.getElementById('canvasbox1').offsetHeight : this.obj.height
+    this.setStyle()
+    if (this.save.length <= 0) return
+    this.clear()
+    let image = this.save[this.save.length - 1]
+    this.context.drawImage(image, 0, 0)
+  },
   addEvent () {
     this.obj.addEventListener('mousedown', (e) => {
       this.start = true
@@ -202,12 +254,9 @@ Canvas.prototype = {
     })
 
     window.onresize = () => {
-      this.offsetTop = -this.obj.getBoundingClientRect().top
-      this.offsetLeft = -this.obj.getBoundingClientRect().left
-      if (this.save.length <= 0) return
-      this.clear()
-      let image = this.save[this.save.length - 1]
-      this.context.drawImage(image, 0, 0)
+      if (document.getElementById('canvasbox1')) {
+        this.rewindow()
+      }
     }
 
     window.onscroll = () => {
@@ -289,5 +338,9 @@ Canvas.prototype = {
 
 button{
 	margin: 5px;
+}
+
+.ivu-modal{
+  top: 20px;
 }
 </style>

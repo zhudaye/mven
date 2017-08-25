@@ -34,9 +34,12 @@
 	                <Row class="searchbox">
 	                    <Input placeholder="请输入房间名" v-model="search"><Button slot="append" icon="ios-search-strong"></Button></Input>		               
                     </Row>
-                    <Menu theme="dark" active-name="1" @on-select="changeroom" :open-names="['公共聊天室']">
+                    <Menu theme="dark" active-name="公共聊天室" @on-select="changeroom">
+                        <Menu-item name="公共聊天室">
+				            <Icon type="person-stalker" ></Icon>公共聊天室
+				        </Menu-item>
 				        <Menu-item v-for="room in allroom" :name="room.name">
-				            <Icon type="person-stalker" v-if="room.name === '公共聊天室'"></Icon><Icon type="person" v-else></Icon>{{room.name + '(' + room.count + ')'}}
+				           <Icon type="person"></Icon>{{room.name + '(' + room.count + ')'}}
 				        </Menu-item>
 				    </Menu>
 	            </div>
@@ -68,7 +71,7 @@ export default {
       roomname: '',
       search: '',
       massage: [],
-      actionroom: '',
+      actionroom: '公共聊天室',
       allroom: []
     }
   },
@@ -133,7 +136,7 @@ export default {
       }
     }
   },
-  mounted () {
+  beforeMount () {
     this.$socket.emit('login')
   }
 }

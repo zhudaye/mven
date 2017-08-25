@@ -10,8 +10,8 @@
                     <div class="layout-content-main">
                     <transition name="slide-fade">
                         <keep-alive>
-                            <component :is="currentView">
-                            </component>
+                          <component :is="currentView">
+                          </component>
                         </keep-alive>
                     </transition>
                     </div>
@@ -25,6 +25,8 @@
 import mynav from './nav/Nav'
 import drawing from './workspace/Drawing'
 import chat from './workspace/Chat'
+import nodone from './workspace/Nodone'
+import done from './workspace/Done'
 export default {
   name: 'main',
   data () {
@@ -37,7 +39,9 @@ export default {
   components: {
     'my-nav': mynav,
     'my-draw': drawing,
-    'my-chat': chat
+    'my-chat': chat,
+    'my-nodone': nodone,
+    'my-done': done
   },
   methods: {
     changeWorkspace (name) {
@@ -65,12 +69,11 @@ export default {
 }
 .layout-content{
     height: calc(100% - 60px);
-    overflow: hidden;
+    
     padding: 15px;
     border-radius: 4px;
 }
 .layout-content-main{
-    background: #fff;
     height: 100%;
 }
 .layout-copy{

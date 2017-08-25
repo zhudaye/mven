@@ -75,4 +75,71 @@ api.post('/register', (req,res) => {
 	})
 })
 
+api.post('/saveimg', (req,res) => {
+  mongodb.connect(DB_CONN,db => {
+    if(!db){
+      console.log("数据库连接失败!")
+      res.send('-1');
+      return 
+    }
+    mongodb.find(db, 'img', {
+        imgname: req.body.imgname
+        },(result) => {
+            if(result === -2){
+                res.send('-2');
+                db.close();
+            }
+
+            else if(result.length <= 0){
+              mongodb.insert(db, 'img', {
+                imgname: req.body.imgname,
+                username: req.body.username,
+                type: req.body.type,
+                img: req.body.img
+                },(result) => {
+                    if(result === -2){
+                       res.send('-2');
+                    }
+                    else if(result.ops.length > 0){
+                      res.send('1'); 
+                    }
+                    else{
+                      res.send('2');
+                    }
+                    db.close();
+              })
+            }
+            else{
+              res.send('3');
+              db.close();
+            }
+       })
+  })
+})
+
+api.get('/getimg', (req,res) => {
+  mongodb.connect(DB_CONN,db => {
+    if(db === -1){
+      console.log("数据库连接失败!")
+      res.send('-1');
+      return 
+    }
+        mongodb.find(db, 'img', {
+        username: req.query.username,
+        type: req.query.type
+        },(result) => {
+            if(result === -2){
+                res.send('-2');
+            }
+            else if(result.length > 0){
+              res.send(result);
+            }
+            else{
+              res.send('2');
+            }
+            db.close();
+       })
+  })
+})
+
 module.exports = api;
