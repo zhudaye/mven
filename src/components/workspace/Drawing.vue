@@ -45,7 +45,7 @@
 	            <div><Button type="warning" @click="clearCanvas">清理画布</Button><Button type="info" @click="goback">后退</Button><Button type="success" @click="save">保存</Button><Button type="error" @click="clearSave">清理缓存</Button></div>
 	        </Card>
 		</div>
-    <Modal v-model="modal1" title="保存图片" @on-ok="ok" class-name="vertical-center-modal">
+    <Modal v-model="modal1" title="保存图片" @on-ok="ok" class-name="vertical-center-modal" :loading="true">
         <p> 
           <Form label-position="right" :label-width="60">
             <Form-item label="图片名称">
@@ -123,7 +123,10 @@ export default {
           }
           if (response.body === '2') this.$Message.error('保存失败!')
           if (response.body === '3') this.$Message.error('图片名已存在!')
-          if (response.body === '-1' || response.body === '-2') this.$Message.error('未知错误,请联系客服!')
+          if (response.body === '-1' || response.body === '-2') {
+            this.$Message.error('未知错误,请联系客服!')
+          }
+          this.modal1 = false
         }, response => {
           console.log(response)
         })
@@ -338,9 +341,5 @@ Canvas.prototype = {
 
 button{
 	margin: 5px;
-}
-
-.ivu-modal{
-  top: 20px;
 }
 </style>

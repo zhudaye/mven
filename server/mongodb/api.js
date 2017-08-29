@@ -7,8 +7,11 @@ var api = express();
 var DB_CONN = 'mongodb://localhost:27017/vue';
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-api.use(bodyParser.json());
-api.use(bodyParser.urlencoded({ extended: false }));
+api.use(bodyParser.urlencoded({
+    parameterLimit: 100000,
+    limit: '200mb',
+    extended: true
+  }));
 api.use(cookieParser());
 api.get('/login', (req,res) => {
 	mongodb.connect(DB_CONN,db => {
@@ -114,6 +117,28 @@ api.post('/saveimg', (req,res) => {
               db.close();
             }
        })
+  })
+})
+
+api.post('/removeimg', (req,res) => {
+  mongodb.connect(DB_CONN,db => {
+    if(!db){
+      console.log("数据库连接失败!")
+      res.send('-1');
+      return 
+    }
+    mongodb.remove(db, 'img', {
+      imgname: req.body.imgname,
+      username: req.body.username
+    },(result) => {
+      if(result === -2){
+          res.send('-2');
+          return;
+      }
+      if(result.result.n > 0){
+          res.send('1');
+      }
+    })
   })
 })
 

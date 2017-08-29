@@ -32,14 +32,15 @@
 	            <p slot="title">房间</p>
 	            <div class="roombox">
 	                <Row class="searchbox">
-	                    <Input placeholder="请输入房间名" v-model="search"><Button slot="append" icon="ios-search-strong"></Button></Input>		               
+	                    <Input placeholder="请输入房间名" v-model="search"><span slot="append" style="cursor: pointer" @click="joinroom">添加</span></Input>		               
                     </Row>
                     <Menu theme="dark" active-name="公共聊天室" @on-select="changeroom">
                         <Menu-item name="公共聊天室">
 				            <Icon type="person-stalker" ></Icon>公共聊天室
 				        </Menu-item>
-				        <Menu-item v-for="room in allroom" :name="room.name">
+				        <Menu-item v-for="(room, index) in allroom" :name="room.name" class="oneroom">
 				           <Icon type="person"></Icon>{{room.name + '(' + room.count + ')'}}
+				           <div class="closebut" @click.stop="deletroom(index)"><Icon type="close-round"></Icon></div>
 				        </Menu-item>
 				    </Menu>
 	            </div>
@@ -63,6 +64,7 @@
 	</div>
 </template>
 <script>
+import un from 'underscore'
 export default {
   name: 'Chat',
   data () {
@@ -83,6 +85,16 @@ export default {
   methods: {
     clearcontent () {
       this.content = ''
+    },
+    joinroom () {
+      if (checklength(this.search) <= 0) {
+        this.$Message.error('房间名不能为空!')
+        return
+      }
+      this.$socket.emit('joinroom', delspace(this.search))
+    },
+    deletroom (index) {
+      this.allroom.splice(index, 1)
     },
     changeroom (name) {
       this.actionroom = name
@@ -113,14 +125,22 @@ export default {
     add () {
       this.$socket.emit('addroom', {
         name: this.roomname,
-        count: 1
+        count: 0
       })
     }
   },
   socket: {
     events: {
-      updateallroom (msg) {
-        this.allroom = msg
+      addroom (msg) {
+        if (isin(this.allroom, msg)) {
+          this.$Notice.open({
+            title: '本地通知',
+            desc: '房间已存在!',
+            duration: 1
+          })
+          return
+        }
+        this.allroom.push(msg)
       },
       msg (msg) {
         if (this.massage.length >= 100) {
@@ -128,10 +148,11 @@ export default {
         }
         this.massage.push(msg)
       },
-      roomfull (msg) {
+      systemmsg (msg) {
         this.$Notice.open({
           title: '系统通知',
-          desc: msg
+          desc: msg,
+          duration: 1
         })
       }
     }
@@ -139,6 +160,18 @@ export default {
   beforeMount () {
     this.$socket.emit('login')
   }
+}
+
+function delspace (str) {
+  return str.replace(/\s+/g, '')
+}
+
+function checklength (str) {
+  return delspace(str).length
+}
+
+function isin (arr, ele) {
+  return un.some(arr, ele)
 }
 </script>
 <style scoped>
@@ -305,5 +338,24 @@ textarea{
 
 .ivu-menu-item{
 	padding: 10px 16px;
+}
+
+.closebut{
+	position: absolute;
+	top: 50%;
+	right: 60px;
+	-webkit-transform: translate(0,-50%);
+	-moz-transform: translate(0,-50%);
+	-ms-transform: translate(0,-50%);
+	-o-transform: translate(0,-50%);
+	transform: translate(0,-50%);
+}
+
+.oneroom{
+	position: relative;
+}
+
+.oneroom:hover .closebut{
+	display: block;
 }
 </style>
